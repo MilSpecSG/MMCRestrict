@@ -2,7 +2,7 @@ package net.moddedminecraft.mmcrestrict.Commands;
 
 import com.flowpowered.math.vector.Vector3i;
 import net.moddedminecraft.mmcrestrict.Data.ItemData;
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.command.CommandException;
@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Search implements CommandExecutor {
-    private final Main plugin;
+    private final MMCRestrict plugin;
 
-    public Search(Main plugin) {
+    public Search(MMCRestrict plugin) {
         this.plugin = plugin;
     }
 

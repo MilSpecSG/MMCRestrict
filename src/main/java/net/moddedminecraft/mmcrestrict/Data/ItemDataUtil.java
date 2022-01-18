@@ -1,22 +1,37 @@
 package net.moddedminecraft.mmcrestrict.Data;
 
+import org.spongepowered.api.item.ItemType;
+
 public class ItemDataUtil {
 
-    protected String itemid, itemname, banreason;
-    protected Boolean hidden, ownershipbanned, usagebanned, breakingbanned, placingbanned, dropbanned, craftbanned, worldbanned;
+    protected String itemName, banReason;
+    protected ItemType itemType;
+    protected Boolean hidden, ownershipBanned, usageBanned, breakingBanned, placingBanned, dropBanned, craftBanned, worldBanned;
 
-    public ItemDataUtil(Boolean hidden, String itemid, String itemname, String banreason, Boolean usagebanned, Boolean breakingbanned, Boolean placingbanned, Boolean ownershipbanned, Boolean dropbanned, Boolean craftbanned, Boolean worldbanned) {
+    public ItemDataUtil(
+            Boolean hidden,
+            ItemType itemType,
+            String itemName,
+            String banReason,
+            Boolean usageBanned,
+            Boolean breakingBanned,
+            Boolean placingBanned,
+            Boolean ownershipBanned,
+            Boolean dropBanned,
+            Boolean craftBanned,
+            Boolean worldBanned
+    ) {
         this.hidden = hidden;
-        this.itemid = itemid;
-        this.itemname = itemname;
-        this.banreason = banreason;
-        this.ownershipbanned = ownershipbanned;
-        this.usagebanned = usagebanned;
-        this.breakingbanned = breakingbanned;
-        this.placingbanned = placingbanned;
-        this.dropbanned = dropbanned;
-        this.craftbanned = craftbanned;
-        this.worldbanned = worldbanned;
+        this.itemType = itemType;
+        this.itemName = itemName;
+        this.banReason = banReason;
+        this.ownershipBanned = ownershipBanned;
+        this.usageBanned = usageBanned;
+        this.breakingBanned = breakingBanned;
+        this.placingBanned = placingBanned;
+        this.dropBanned = dropBanned;
+        this.craftBanned = craftBanned;
+        this.worldBanned = worldBanned;
     }
 
     public Boolean getHidden() {
@@ -27,79 +42,74 @@ public class ItemDataUtil {
         this.hidden = hidden;
     }
 
-    public String getItemname() {
-        return itemname;
+    public ItemType getItemType() {
+        return itemType;
+    }
+    public String getBanReason() {
+        return banReason;
     }
 
-    public String getItemid() {
-        return itemid;
+    public Boolean getOwnershipBanned() {
+        return ownershipBanned;
     }
 
-    public String getBanreason() {
-        return banreason;
+    public Boolean getUsageBanned() {
+        return usageBanned;
     }
 
-    public Boolean getOwnershipbanned() {
-        return ownershipbanned;
+    public Boolean getBreakingBanned() {
+        return breakingBanned;
     }
 
-    public Boolean getUsagebanned() {
-        return usagebanned;
+    public Boolean getPlacingBanned() {
+        return placingBanned;
     }
 
-    public Boolean getBreakingbanned() {
-        return breakingbanned;
+    public Boolean getDropBanned() {
+        return dropBanned;
     }
 
-    public Boolean getPlacingbanned() {
-        return placingbanned;
+    public Boolean getWorldBanned() {
+        return worldBanned;
     }
 
-    public Boolean getDropbanned() {
-        return dropbanned;
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
-    public Boolean getWorldbanned() {
-        return worldbanned;
+    public void setBanReason(String banReason) {
+        this.banReason = banReason;
     }
 
-    public void setItemname(String itemname) {
-        this.itemname = itemname;
+    public void setOwnershipBanned(Boolean ownershipBanned) {
+        this.ownershipBanned = ownershipBanned;
     }
 
-    public void setBanreason(String banreason) {
-        this.banreason = banreason;
+    public void setUsageBanned(Boolean usageBanned) {
+        this.usageBanned = usageBanned;
     }
 
-    public void setOwnershipbanned(Boolean ownershipbanned) {
-        this.ownershipbanned = ownershipbanned;
+    public void setBreakingBanned(Boolean breakingBanned) {
+        this.breakingBanned = breakingBanned;
     }
 
-    public void setUsagebanned(Boolean usagebanned) {
-        this.usagebanned = usagebanned;
+    public void setPlacingBanned(Boolean placingBanned) {
+        this.placingBanned = placingBanned;
     }
 
-    public void setBreakingbanned(Boolean breakingbanned) {
-        this.breakingbanned = breakingbanned;
+    public void setDropBanned(Boolean dropBanned) {
+        this.dropBanned = dropBanned;
     }
 
-    public void setPlacingbanned(Boolean placingbanned) {
-        this.placingbanned = placingbanned;
+    public void setWorldBanned(Boolean worldBanned) {
+        this.worldBanned = worldBanned;
     }
 
-    public void setDropbanned(Boolean dropbanned) {
-        this.dropbanned = dropbanned;
+    public Boolean getCraftBanned() {
+        return craftBanned;
     }
 
-    public void setWorldbanned(Boolean worldbanned) {
-        this.worldbanned = worldbanned;
-    }
-
-    public Boolean getCraftbanned() {
-        return craftbanned;
-    }
-
-    public void setCraftbanned(Boolean craftbanned) {
-        this.craftbanned = craftbanned;
+    public void setCraftBanned(Boolean craftBanned) {
+        this.craftBanned = craftBanned;
     }
 }

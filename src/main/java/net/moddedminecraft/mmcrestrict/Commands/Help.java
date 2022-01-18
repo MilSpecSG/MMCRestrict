@@ -1,6 +1,6 @@
 package net.moddedminecraft.mmcrestrict.Commands;
 
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import net.moddedminecraft.mmcrestrict.Permissions;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -16,8 +16,8 @@ import java.util.List;
 
 public class Help implements CommandExecutor {
 
-    private final Main plugin;
-    public Help(Main instance) {
+    private final MMCRestrict plugin;
+    public Help(MMCRestrict instance) {
         plugin = instance;
     }
 

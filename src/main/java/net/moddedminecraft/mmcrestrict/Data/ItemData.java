@@ -1,51 +1,56 @@
 package net.moddedminecraft.mmcrestrict.Data;
 
-import com.google.common.reflect.TypeToken;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import io.leangen.geantyref.TypeToken;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializer;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class ItemData extends ItemDataUtil {
 
-    public ItemData(Boolean hidden, String itemid, String itemname, String banreason, Boolean usagebanned, Boolean breakingbanned, Boolean placingbanned, Boolean ownershipbanned, Boolean dropbanned, Boolean craftbanned, Boolean worldbanned) {
-        super(hidden, itemid, itemname, banreason, usagebanned, breakingbanned, placingbanned, ownershipbanned, dropbanned, craftbanned, worldbanned);
+    public ItemData(Boolean hidden, ItemType itemType, String itemname, String banreason, Boolean usagebanned, Boolean breakingbanned, Boolean placingbanned, Boolean ownershipbanned, Boolean dropbanned, Boolean craftbanned, Boolean worldbanned) {
+        super(hidden, itemType, itemname, banreason, usagebanned, breakingbanned, placingbanned, ownershipbanned, dropbanned, craftbanned, worldbanned);
     }
 
     public static class ItemDataSerializer implements TypeSerializer<ItemData> {
-        @SuppressWarnings("serial")
         final public static TypeToken<List<ItemData>> token = new TypeToken<List<ItemData>>() {};
 
         @Override
-        public ItemData deserialize(TypeToken<?> token, ConfigurationNode node) throws ObjectMappingException {
+        public ItemData deserialize(Type type, ConfigurationNode node) throws SerializationException {
             return new ItemData(
-                    node.getNode("hidden").getBoolean(),
-                    node.getNode("itemid").getString(),
-                    node.getNode("itemname").getString(),
-                    node.getNode("banreason").getString(),
-                    node.getNode("usagebanned").getBoolean(),
-                    node.getNode("breakingbanned").getBoolean(),
-                    node.getNode("placingbanned").getBoolean(),
-                    node.getNode("ownershipbanned").getBoolean(),
-                    node.getNode("dropbanned").getBoolean(),
-                    node.getNode("craftbanned").getBoolean(),
-                    node.getNode("worldbanned").getBoolean());
+                    node.node("hidden").getBoolean(),
+                    node.node("itemType").get(TypeToken.get(ItemType.class)),
+                    node.node("itemName").getString(),
+                    node.node("banReason").getString(),
+                    node.node("usageBanned").getBoolean(),
+                    node.node("breakingBanned").getBoolean(),
+                    node.node("placingBanned").getBoolean(),
+                    node.node("ownershipBanned").getBoolean(),
+                    node.node("dropBanned").getBoolean(),
+                    node.node("craftBanned").getBoolean(),
+                    node.node("worldBanned").getBoolean());
         }
 
         @Override
-        public void serialize(TypeToken<?> token, ItemData itemdata, ConfigurationNode node) throws ObjectMappingException {
-            node.getNode("hidden").setValue(itemdata.hidden);
-            node.getNode("itemid").setValue(itemdata.itemid);
-            node.getNode("itemname").setValue(itemdata.itemname);
-            node.getNode("banreason").setValue(itemdata.banreason);
-            node.getNode("usagebanned").setValue(itemdata.usagebanned);
-            node.getNode("breakingbanned").setValue(itemdata.breakingbanned);
-            node.getNode("placingbanned").setValue(itemdata.placingbanned);
-            node.getNode("ownershipbanned").setValue(itemdata.ownershipbanned);
-            node.getNode("dropbanned").setValue(itemdata.dropbanned);
-            node.getNode("craftbanned").setValue(itemdata.craftbanned);
-            node.getNode("worldbanned").setValue(itemdata.worldbanned);
+        public void serialize(Type type, @Nullable ItemData itemData, ConfigurationNode node) throws SerializationException {
+            if (itemData == null) {
+                throw new SerializationException("ItemData may not be null!");
+            }
+            node.node("hidden").set(itemData.hidden);
+            node.node("itemType").set(itemData.itemType);
+            node.node("itemName").set(itemData.itemName);
+            node.node("banReason").set(itemData.banReason);
+            node.node("usageBanned").set(itemData.usageBanned);
+            node.node("breakingBanned").set(itemData.breakingBanned);
+            node.node("placingBanned").set(itemData.placingBanned);
+            node.node("ownershipBanned").set(itemData.ownershipBanned);
+            node.node("dropBanned").set(itemData.dropBanned);
+            node.node("craftBanned").set(itemData.craftBanned);
+            node.node("worldBanned").set(itemData.worldBanned);
         }
     }
 

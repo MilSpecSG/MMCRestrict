@@ -1,6 +1,6 @@
 package net.moddedminecraft.mmcrestrict.Commands;
 
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -15,9 +15,9 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import java.util.Optional;
 
 public class Whatsthis implements CommandExecutor {
-    private final Main plugin;
+    private final MMCRestrict plugin;
 
-    public Whatsthis(Main plugin) {
+    public Whatsthis(MMCRestrict plugin) {
         this.plugin = plugin;
     }
 

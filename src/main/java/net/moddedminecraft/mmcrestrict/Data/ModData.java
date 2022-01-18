@@ -1,10 +1,13 @@
 package net.moddedminecraft.mmcrestrict.Data;
 
-import com.google.common.reflect.TypeToken;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 
+import io.leangen.geantyref.TypeToken;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializer;
+
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class ModData extends ModDataUtil {
@@ -15,35 +18,39 @@ public class ModData extends ModDataUtil {
 
     public static class ModDataSerializer implements TypeSerializer<ModData> {
         @SuppressWarnings("serial")
-        final public static TypeToken<List<ModData>> token = new TypeToken<List<ModData>>() {};
+        final public static TypeToken<List<ModData>> token = new TypeToken<List<ModData>>() {
+        };
 
         @Override
-        public ModData deserialize(TypeToken<?> token, ConfigurationNode node) throws ObjectMappingException {
+        public ModData deserialize(Type type, ConfigurationNode node) throws SerializationException {
             return new ModData(
-                    node.getNode("hidden").getBoolean(),
-                    node.getNode("mod").getString(),
-                    node.getNode("modname").getString(),
-                    node.getNode("banreason").getString(),
-                    node.getNode("usagebanned").getBoolean(),
-                    node.getNode("breakingbanned").getBoolean(),
-                    node.getNode("placingbanned").getBoolean(),
-                    node.getNode("ownershipbanned").getBoolean(),
-                    node.getNode("dropbanned").getBoolean(),
-                    node.getNode("craftbanned").getBoolean());
+                    node.node("hidden").getBoolean(),
+                    node.node("mod").getString(),
+                    node.node("modname").getString(),
+                    node.node("banreason").getString(),
+                    node.node("usagebanned").getBoolean(),
+                    node.node("breakingbanned").getBoolean(),
+                    node.node("placingbanned").getBoolean(),
+                    node.node("ownershipbanned").getBoolean(),
+                    node.node("dropbanned").getBoolean(),
+                    node.node("craftbanned").getBoolean());
         }
 
         @Override
-        public void serialize(TypeToken<?> token, ModData itemdata, ConfigurationNode node) throws ObjectMappingException {
-            node.getNode("hidden").setValue(itemdata.hidden);
-            node.getNode("mod").setValue(itemdata.mod);
-            node.getNode("modname").setValue(itemdata.modname);
-            node.getNode("banreason").setValue(itemdata.banreason);
-            node.getNode("usagebanned").setValue(itemdata.usagebanned);
-            node.getNode("breakingbanned").setValue(itemdata.breakingbanned);
-            node.getNode("placingbanned").setValue(itemdata.placingbanned);
-            node.getNode("ownershipbanned").setValue(itemdata.ownershipbanned);
-            node.getNode("dropbanned").setValue(itemdata.dropbanned);
-            node.getNode("craftbanned").setValue(itemdata.craftbanned);
+        public void serialize(Type type, @Nullable ModData itemData, ConfigurationNode node) throws SerializationException {
+            if (itemData == null) {
+                throw new SerializationException("ModData may not be null!");
+            }
+            node.node("hidden").set(itemData.hidden);
+            node.node("mod").set(itemData.mod);
+            node.node("modname").set(itemData.modname);
+            node.node("banreason").set(itemData.banreason);
+            node.node("usagebanned").set(itemData.usagebanned);
+            node.node("breakingbanned").set(itemData.breakingbanned);
+            node.node("placingbanned").set(itemData.placingbanned);
+            node.node("ownershipbanned").set(itemData.ownershipbanned);
+            node.node("dropbanned").set(itemData.dropbanned);
+            node.node("craftbanned").set(itemData.craftbanned);
         }
     }
 

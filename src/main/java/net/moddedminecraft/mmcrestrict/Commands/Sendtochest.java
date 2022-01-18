@@ -2,7 +2,7 @@ package net.moddedminecraft.mmcrestrict.Commands;
 
 import com.flowpowered.math.vector.Vector3i;
 import net.moddedminecraft.mmcrestrict.Config.Config;
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
@@ -22,9 +22,9 @@ import org.spongepowered.api.world.Chunk;
 import org.spongepowered.api.world.Location;
 
 public class Sendtochest implements CommandExecutor {
-    private final Main plugin;
+    private final MMCRestrict plugin;
 
-    public Sendtochest(Main plugin) {
+    public Sendtochest(MMCRestrict plugin) {
         this.plugin = plugin;
     }
 

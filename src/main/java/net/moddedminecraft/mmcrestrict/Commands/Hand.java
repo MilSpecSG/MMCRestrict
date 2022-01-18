@@ -2,7 +2,7 @@ package net.moddedminecraft.mmcrestrict.Commands;
 
 import net.moddedminecraft.mmcrestrict.Config.Config;
 import net.moddedminecraft.mmcrestrict.Data.ItemData;
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -18,9 +18,9 @@ import org.spongepowered.api.text.Text;
 import java.util.ArrayList;
 
 public class Hand implements CommandExecutor {
-    private final Main plugin;
+    private final MMCRestrict plugin;
 
-    public Hand(Main plugin) {
+    public Hand(MMCRestrict plugin) {
         this.plugin = plugin;
     }
 

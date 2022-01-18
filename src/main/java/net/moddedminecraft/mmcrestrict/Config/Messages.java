@@ -1,12 +1,12 @@
 package net.moddedminecraft.mmcrestrict.Config;
 
-import net.moddedminecraft.mmcrestrict.Main;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.TextSerializers;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 public class Messages {
 
-    private static Main plugin;
+    private static MMCRestrict plugin;
     public Path defaultMessage;
 
     private static final Pattern URL_PATTERN = Pattern.compile("((https?|ftp|gopher|telnet|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)", Pattern.CASE_INSENSITIVE);
@@ -27,10 +27,10 @@ public class Messages {
     public static ConfigurationLoader<CommentedConfigurationNode> messageLoader;
     public static CommentedConfigurationNode messages;
 
-    public Messages(Main main) throws IOException, ObjectMappingException {
+    public Messages(MMCRestrict main) throws IOException {
         plugin = main;
         defaultMessage = plugin.ConfigDir.resolve("messages.conf");
-        messageLoader = HoconConfigurationLoader.builder().setPath(defaultMessage).build();
+        messageLoader = HoconConfigurationLoader.builder().path(defaultMessage).build();
         messages = messageLoader.load();
         messageCheck();
     }
@@ -59,7 +59,7 @@ public class Messages {
     //checkchunks
     public static String checkStarted = "Chunk searching has been initiated. All world banned items will be removed if found.";
 
-    public void messageCheck() throws IOException, ObjectMappingException {
+    public void messageCheck() throws IOException {
 
         if (!Files.exists(defaultMessage)) {
             Files.createFile(defaultMessage);
@@ -67,43 +67,41 @@ public class Messages {
 
 
         //banlist
-        bannedListTitle = check(messages.getNode("list", "title"), bannedListTitle).getString();
-        bannedListPadding = check(messages.getNode("list", "padding"), bannedListPadding).getString();
-        bannedItemNonHidden = check(messages.getNode("list", "error", "non-hidden"), bannedItemNonHidden).getString();
-        bannedItemNonSet = check(messages.getNode("list", "error", "non-set"), bannedItemNonSet).getString();
-        bannedMod = check(messages.getNode("list", "formatting", "mod-name"), bannedMod).getString();
-        bannedItem = check(messages.getNode("list", "formatting", "name"), bannedItem).getString();
-        bannedItemReason = check(messages.getNode("list", "formatting", "reason"), bannedItemReason).getString();
-        bannedItemHover = check(messages.getNode("list", "hover", "info"), bannedItemHover).getString();
-        bannedItemEdit = check(messages.getNode("list", "hover", "edit"), bannedItemEdit).getString();
-        bannedItemExtraInfo = check(messages.getNode("list", "hover", "extra"), bannedItemExtraInfo).getString();
+        bannedListTitle = check(messages.node("list", "title"), bannedListTitle).getString();
+        bannedListPadding = check(messages.node("list", "padding"), bannedListPadding).getString();
+        bannedItemNonHidden = check(messages.node("list", "error", "non-hidden"), bannedItemNonHidden).getString();
+        bannedItemNonSet = check(messages.node("list", "error", "non-set"), bannedItemNonSet).getString();
+        bannedMod = check(messages.node("list", "formatting", "mod-name"), bannedMod).getString();
+        bannedItem = check(messages.node("list", "formatting", "name"), bannedItem).getString();
+        bannedItemReason = check(messages.node("list", "formatting", "reason"), bannedItemReason).getString();
+        bannedItemHover = check(messages.node("list", "hover", "info"), bannedItemHover).getString();
+        bannedItemEdit = check(messages.node("list", "hover", "edit"), bannedItemEdit).getString();
+        bannedItemExtraInfo = check(messages.node("list", "hover", "extra"), bannedItemExtraInfo).getString();
 
         //checkchunks
-        checkStarted = check(messages.getNode("commands", "checkchunks", "check-started"), checkStarted).getString();
+        checkStarted = check(messages.node("commands", "checkchunks", "check-started"), checkStarted).getString();
 
         //hidden banlist
-        bannedListHiddenTitle = check(messages.getNode("list", "hidden", "title"), bannedListHiddenTitle).getString();
-        bannedListHideHover = check(messages.getNode("list", "hidden", "hover"), bannedListHideHover).getString();
-        bannedListHidden = check(messages.getNode("list", "hidden", "hidden-prefix"), bannedListHidden).getString();
-        bannedListHide = check(messages.getNode("list", "hidden", "hide-prefix"), bannedListHide).getString();
+        bannedListHiddenTitle = check(messages.node("list", "hidden", "title"), bannedListHiddenTitle).getString();
+        bannedListHideHover = check(messages.node("list", "hidden", "hover"), bannedListHideHover).getString();
+        bannedListHidden = check(messages.node("list", "hidden", "hidden-prefix"), bannedListHidden).getString();
+        bannedListHide = check(messages.node("list", "hidden", "hide-prefix"), bannedListHide).getString();
 
         messageLoader.save(messages);
     }
 
-    private CommentedConfigurationNode check(CommentedConfigurationNode node, Object defaultValue) {
-        if (node.isVirtual()) {
-            node.setValue(defaultValue);
+    private CommentedConfigurationNode check(CommentedConfigurationNode node, Object defaultValue) throws SerializationException {
+        if (node.virtual()) {
+            node.set(defaultValue);
         }
         return node;
     }
 
-    public static Text parseMessage(String message, HashMap<String, String> args) {
+    public static Component parseMessage(String message, HashMap<String, String> args) {
         for (Map.Entry<String, String> arg : args.entrySet()) {
             message = message.replace("{" + arg.getKey() + "}", arg.getValue());
         }
-        Text textMessage = TextSerializers.FORMATTING_CODE.deserialize(message);
-
-        return textMessage;
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(message);
     }
 
 }
