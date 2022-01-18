@@ -4,8 +4,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.moddedminecraft.mmcrestrict.Data.ItemData;
 import net.moddedminecraft.mmcrestrict.Data.ModData;
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.entity.carrier.chest.Chest;
 import org.spongepowered.api.data.Keys;
@@ -24,15 +26,18 @@ import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 import org.spongepowered.api.event.item.inventory.CraftItemEvent;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.scheduler.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class EventListener {
@@ -347,8 +352,7 @@ public class EventListener {
         }
 
         for (ItemData item : items) {
-            String id = ItemTypes.registry().valueKey(item.getItemType()).asString();
-            if (id.equalsIgnoreCase(itemID)
+            if (item.getItemId().equalsIgnoreCase(itemID)
                 && ((banType.equalsIgnoreCase("craft") && item.getCraftBanned())
                 || (banType.equalsIgnoreCase("break") && item.getBreakingBanned())
                 || (banType.equalsIgnoreCase("drop") && item.getDropBanned())
@@ -360,18 +364,18 @@ public class EventListener {
                     if (!item.getBanReason().isEmpty()) {
                         reason = " &3- &7" + item.getBanReason();
                     }
-                    plugin.logToFile("action-log", player.name() + " tried to " + banType.toLowerCase() + " " + id);
+                    plugin.logToFile("action-log", player.name() + " tried to " + banType.toLowerCase() + " " + item.getItemId());
                     if (!banType.equalsIgnoreCase("own")) {
                         plugin.notifyOnlineStaff(
                             Component.text()
                                 .append(Component.text("[").color(NamedTextColor.GRAY))
                                 .append(Component.text("MMCRestrict").color(NamedTextColor.GOLD))
                                 .append(Component.text("]").color(NamedTextColor.GRAY))
-                                .append(Component.text(player.name() + " tried to " + banType.toLowerCase() + " " + id))
+                                .append(Component.text(player.name() + " tried to " + banType.toLowerCase() + " " + item.getItemId()))
                                 .build()
                         );
                     }
-                    player.sendMessage(Component.text(id + " is banned " + reason).color(NamedTextColor.RED));
+                    player.sendMessage(Component.text(item.getItemId() + " is banned " + reason).color(NamedTextColor.RED));
                     checkInventory(player);
                     return true;
                 }
@@ -381,9 +385,16 @@ public class EventListener {
     }
 
     private boolean checkBanned(BlockSnapshot blockSnapshot, String banType, ServerPlayer player) {
-        final List<ItemData> items = new ArrayList<ItemData>(plugin.getItemData());
-        final List<ModData> mods = new ArrayList<ModData>(plugin.getModData());
-        String itemID = ItemTypes.registry().valueKey(blockSnapshot.state().type().item().get()).asString();
+        final List<ItemData> items = new ArrayList<>(plugin.getItemData());
+        final List<ModData> mods = new ArrayList<>(plugin.getModData());
+        Optional<ItemType> itemType = blockSnapshot.state().type().item();
+        String itemID = "";
+        if (!itemType.isPresent()) {
+            BlockType type = blockSnapshot.state().type();
+            itemID = BlockTypes.registry().valueKey(type).value();
+        } else {
+            itemID = ItemTypes.registry().valueKey(itemType.get()).value();
+        }
         if (!blockSnapshot.state().type().item().isPresent()) {
             return false;
         }
@@ -438,8 +449,7 @@ public class EventListener {
         }
 
         for (ItemData item : items) {
-            String id = ItemTypes.registry().valueKey(item.getItemType()).asString();
-            if (id.equalsIgnoreCase(itemID)
+            if (item.getItemId().equalsIgnoreCase(itemID)
                 && ((banType.equalsIgnoreCase("craft") && item.getCraftBanned())
                 || (banType.equalsIgnoreCase("break") && item.getBreakingBanned())
                 || (banType.equalsIgnoreCase("drop") && item.getDropBanned())
@@ -451,7 +461,7 @@ public class EventListener {
                     if (!item.getBanReason().isEmpty()) {
                         reason = " &3- &7" + item.getBanReason();
                     }
-                    plugin.logToFile("action-log", player.name() + " tried to " + banType.toLowerCase() + " " + id);
+                    plugin.logToFile("action-log", player.name() + " tried to " + banType.toLowerCase() + " " + item.getItemId());
                     if (!banType.equalsIgnoreCase("own")) {
                         plugin.notifyOnlineStaff(
                             Component.text()
@@ -463,7 +473,7 @@ public class EventListener {
                         );
                     }
                     player.sendMessage(
-                        Component.text(id + " is banned " + reason).color(NamedTextColor.RED)
+                        Component.text(item.getItemId() + " is banned " + reason).color(NamedTextColor.RED)
                     );
                     Sponge.server().scheduler().submit(
                         Task.builder().execute(runnable -> checkInventory(player)).delay(250, TimeUnit.MILLISECONDS).build(),
@@ -497,16 +507,15 @@ public class EventListener {
                     itemID = itemID + ":" + unsafeDamage;
                 }
                 for (ItemData item : items) {
-                    String itemId = ItemTypes.registry().valueKey(item.getItemType()).asString();
-                    if (itemId.equalsIgnoreCase(itemID) && item.getOwnershipBanned()) {
+                    if (item.getItemId().equalsIgnoreCase(itemID) && item.getOwnershipBanned()) {
                         if (plugin.checkPerm(player, "own", itemID)) {
                             s.clear();
                             String reason = "";
                             if (!item.getBanReason().isEmpty()) {
                                 reason = " &3- &7" + item.getBanReason();
                             }
-                            plugin.logToFile("action-log", itemId + " was removed from " + player.name() + "'s inventory");
-                            player.sendMessage(Component.text(itemId + " is banned and has been removed from your inventory" + reason).color(NamedTextColor.RED));
+                            plugin.logToFile("action-log", item.getItemId() + " was removed from " + player.name() + "'s inventory");
+                            player.sendMessage(Component.text(item.getItemId() + " is banned and has been removed from your inventory" + reason).color(NamedTextColor.RED));
                         }
                     }
                 }

@@ -1,3 +1,4 @@
+/*
 package net.moddedminecraft.mmcrestrict.Commands;
 
 import com.flowpowered.math.vector.Vector3i;
@@ -85,3 +86,4 @@ public class Sendtochest implements CommandExecutor {
         count++;
     }
 }
+*/

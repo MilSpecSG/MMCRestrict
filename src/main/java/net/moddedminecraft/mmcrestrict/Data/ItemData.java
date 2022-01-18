@@ -2,7 +2,6 @@ package net.moddedminecraft.mmcrestrict.Data;
 
 import io.leangen.geantyref.TypeToken;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
@@ -12,8 +11,8 @@ import java.util.List;
 
 public class ItemData extends ItemDataUtil {
 
-    public ItemData(Boolean hidden, ItemType itemType, String itemname, String banreason, Boolean usagebanned, Boolean breakingbanned, Boolean placingbanned, Boolean ownershipbanned, Boolean dropbanned, Boolean craftbanned, Boolean worldbanned) {
-        super(hidden, itemType, itemname, banreason, usagebanned, breakingbanned, placingbanned, ownershipbanned, dropbanned, craftbanned, worldbanned);
+    public ItemData(Boolean hidden, String itemId, String itemname, String banreason, Boolean usagebanned, Boolean breakingbanned, Boolean placingbanned, Boolean ownershipbanned, Boolean dropbanned, Boolean craftbanned, Boolean worldbanned) {
+        super(hidden, itemId, itemname, banreason, usagebanned, breakingbanned, placingbanned, ownershipbanned, dropbanned, craftbanned, worldbanned);
     }
 
     public static class ItemDataSerializer implements TypeSerializer<ItemData> {
@@ -23,7 +22,7 @@ public class ItemData extends ItemDataUtil {
         public ItemData deserialize(Type type, ConfigurationNode node) throws SerializationException {
             return new ItemData(
                     node.node("hidden").getBoolean(),
-                    node.node("itemType").get(TypeToken.get(ItemType.class)),
+                    node.node("itemId").getString(),
                     node.node("itemName").getString(),
                     node.node("banReason").getString(),
                     node.node("usageBanned").getBoolean(),
@@ -41,7 +40,7 @@ public class ItemData extends ItemDataUtil {
                 throw new SerializationException("ItemData may not be null!");
             }
             node.node("hidden").set(itemData.hidden);
-            node.node("itemType").set(itemData.itemType);
+            node.node("itemId").set(itemData.itemId);
             node.node("itemName").set(itemData.itemName);
             node.node("banReason").set(itemData.banReason);
             node.node("usageBanned").set(itemData.usageBanned);

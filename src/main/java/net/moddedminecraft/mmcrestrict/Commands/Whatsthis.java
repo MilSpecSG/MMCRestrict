@@ -1,3 +1,4 @@
+/*
 package net.moddedminecraft.mmcrestrict.Commands;
 
 import net.moddedminecraft.mmcrestrict.MMCRestrict;
@@ -51,3 +52,4 @@ public class Whatsthis implements CommandExecutor {
         return CommandResult.success();
     }
 }
+*/

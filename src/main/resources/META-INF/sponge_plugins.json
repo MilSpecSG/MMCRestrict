@@ -1,0 +1,33 @@
+{
+  "loader": {
+    "name": "java_plain",
+    "version": "1.0"
+  },
+  "license": "LGPL",
+  "plugins": [
+    {
+      "id": "mmcrestrict",
+      "name": "MMCRestrict",
+      "version": "0.4.0-SNAPSHOT",
+      "entrypoint": "net.moddedminecraft.mmcrestrict.MMCRestrict",
+      "description": "A restriction plugin",
+      "links": {
+        "homepage": "https://www.anvilpowered.org/",
+        "source": "https://github.com/AnvilPowered/Anvil",
+        "issues": "https://github.com/AnvilPowered/Anvil/issues"
+      },
+      "contributors": [
+        {
+          "name": "ModdedMinecraft",
+          "description": "Lead Developer"
+        }
+      ],
+      "dependencies": [
+        {
+          "id": "spongeapi",
+          "version": "8.0.0"
+        }
+      ]
+    }
+  ]
+}

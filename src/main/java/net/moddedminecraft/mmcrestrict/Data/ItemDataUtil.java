@@ -1,28 +1,25 @@
 package net.moddedminecraft.mmcrestrict.Data;
 
-import org.spongepowered.api.item.ItemType;
-
 public class ItemDataUtil {
 
-    protected String itemName, banReason;
-    protected ItemType itemType;
+    protected String itemName, itemId, banReason;
     protected Boolean hidden, ownershipBanned, usageBanned, breakingBanned, placingBanned, dropBanned, craftBanned, worldBanned;
 
     public ItemDataUtil(
-            Boolean hidden,
-            ItemType itemType,
-            String itemName,
-            String banReason,
-            Boolean usageBanned,
-            Boolean breakingBanned,
-            Boolean placingBanned,
-            Boolean ownershipBanned,
-            Boolean dropBanned,
-            Boolean craftBanned,
-            Boolean worldBanned
+        Boolean hidden,
+        String itemId,
+        String itemName,
+        String banReason,
+        Boolean usageBanned,
+        Boolean breakingBanned,
+        Boolean placingBanned,
+        Boolean ownershipBanned,
+        Boolean dropBanned,
+        Boolean craftBanned,
+        Boolean worldBanned
     ) {
         this.hidden = hidden;
-        this.itemType = itemType;
+        this.itemId = itemId;
         this.itemName = itemName;
         this.banReason = banReason;
         this.ownershipBanned = ownershipBanned;
@@ -42,9 +39,10 @@ public class ItemDataUtil {
         this.hidden = hidden;
     }
 
-    public ItemType getItemType() {
-        return itemType;
+    public String getItemId() {
+        return itemId;
     }
+
     public String getBanReason() {
         return banReason;
     }

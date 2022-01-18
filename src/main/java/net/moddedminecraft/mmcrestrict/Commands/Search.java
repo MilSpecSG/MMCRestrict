@@ -1,3 +1,4 @@
+/*
 package net.moddedminecraft.mmcrestrict.Commands;
 
 import com.flowpowered.math.vector.Vector3i;
@@ -74,3 +75,4 @@ public class Search implements CommandExecutor {
         return CommandResult.success();
     }
 }
+*/

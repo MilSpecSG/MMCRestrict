@@ -1,3 +1,4 @@
+/*
 package net.moddedminecraft.mmcrestrict.Commands;
 
 import net.moddedminecraft.mmcrestrict.Config.Messages;
@@ -22,3 +23,4 @@ public class CheckChunks implements CommandExecutor {
         return CommandResult.success();
     }
 }
+*/
