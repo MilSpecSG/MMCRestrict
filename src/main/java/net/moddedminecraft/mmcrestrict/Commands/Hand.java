@@ -1,8 +1,9 @@
 package net.moddedminecraft.mmcrestrict.Commands;
 
+import com.google.inject.Inject;
 import net.moddedminecraft.mmcrestrict.Config.Config;
 import net.moddedminecraft.mmcrestrict.Data.ItemData;
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -16,13 +17,12 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Hand implements CommandExecutor {
-    private final Main plugin;
 
-    public Hand(Main plugin) {
-        this.plugin = plugin;
-    }
+    @Inject
+    private MMCRestrict plugin;
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
@@ -30,8 +30,7 @@ public class Hand implements CommandExecutor {
             throw new CommandException(Text.of("Console users cannot use this command"));
         }
         Player player = (Player) src;
-        final java.util.List<ItemData> items = new ArrayList<ItemData>(plugin.getItemData());
-
+        final List<ItemData> items = new ArrayList(plugin.getItemData());
 
         if (player.getItemInHand(HandTypes.MAIN_HAND).isPresent()) {
             ItemStack mainHandItem = player.getItemInHand(HandTypes.MAIN_HAND).get();
@@ -53,19 +52,7 @@ public class Hand implements CommandExecutor {
                 itemId = itemId + ":" + unsafeDamage;
             }
 
-            plugin.addItem(new ItemData(
-                    Config.defaultHidden,
-                    itemId,
-                    mainHandItem.getTranslation().get(),
-                    Config.defaultReason,
-                    Config.defaultUsage,
-                    Config.defaultBreaking,
-                    Config.defaultPlacing,
-                    Config.defaultOwnership,
-                    Config.defaultDrop,
-                    Config.defaultCraft,
-                    Config.defaultWorld
-            ));
+            plugin.addItem(new ItemData(Config.defaultHidden, itemId, mainHandItem.getTranslation().get(), Config.defaultReason, Config.defaultUsage, Config.defaultBreaking, Config.defaultPlacing, Config.defaultOwnership, Config.defaultDrop, Config.defaultCraft, Config.defaultWorld));
 
             try {
                 plugin.saveData();
@@ -73,12 +60,11 @@ public class Hand implements CommandExecutor {
                 player.sendMessage(Text.of("Data was not saved correctly."));
                 e.printStackTrace();
             }
-            plugin.logToFile("ban-list", player.getName() + " added " +mainHandItem.getTranslation().get()+ " to the ban list");
+            plugin.logToFile("ban-list", player.getName() + " added " + mainHandItem.getTranslation().get() + " to the ban list");
             player.sendMessage(Text.of(mainHandItem.getTranslation().get() + " was added to the list."));
         } else {
             throw new CommandException(Text.of("Main hand is empty"));
         }
-
         return CommandResult.success();
     }
 }

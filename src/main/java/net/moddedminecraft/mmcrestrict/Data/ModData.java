@@ -15,21 +15,22 @@ public class ModData extends ModDataUtil {
 
     public static class ModDataSerializer implements TypeSerializer<ModData> {
         @SuppressWarnings("serial")
-        final public static TypeToken<List<ModData>> token = new TypeToken<List<ModData>>() {};
+        final public static TypeToken<List<ModData>> token = new TypeToken<List<ModData>>() {
+        };
 
         @Override
         public ModData deserialize(TypeToken<?> token, ConfigurationNode node) throws ObjectMappingException {
             return new ModData(
-                    node.getNode("hidden").getBoolean(),
-                    node.getNode("mod").getString(),
-                    node.getNode("modname").getString(),
-                    node.getNode("banreason").getString(),
-                    node.getNode("usagebanned").getBoolean(),
-                    node.getNode("breakingbanned").getBoolean(),
-                    node.getNode("placingbanned").getBoolean(),
-                    node.getNode("ownershipbanned").getBoolean(),
-                    node.getNode("dropbanned").getBoolean(),
-                    node.getNode("craftbanned").getBoolean());
+                node.getNode("hidden").getBoolean(),
+                node.getNode("mod").getString(),
+                node.getNode("modname").getString(),
+                node.getNode("banreason").getString(),
+                node.getNode("usagebanned").getBoolean(),
+                node.getNode("breakingbanned").getBoolean(),
+                node.getNode("placingbanned").getBoolean(),
+                node.getNode("ownershipbanned").getBoolean(),
+                node.getNode("dropbanned").getBoolean(),
+                node.getNode("craftbanned").getBoolean());
         }
 
         @Override

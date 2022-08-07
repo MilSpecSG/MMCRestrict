@@ -1,6 +1,7 @@
 package net.moddedminecraft.mmcrestrict.Commands;
 
-import net.moddedminecraft.mmcrestrict.Main;
+import com.google.inject.Inject;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -14,12 +15,10 @@ import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.Optional;
 
-public class Whatsthis implements CommandExecutor {
-    private final Main plugin;
+public class WhatIsThis implements CommandExecutor {
 
-    public Whatsthis(Main plugin) {
-        this.plugin = plugin;
-    }
+    @Inject
+    private MMCRestrict plugin;
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {

@@ -1,6 +1,6 @@
 package net.moddedminecraft.mmcrestrict.Config;
 
-import net.moddedminecraft.mmcrestrict.Main;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -18,26 +18,19 @@ import java.util.regex.Pattern;
 
 public class Messages {
 
-    private static Main plugin;
     public Path defaultMessage;
-
     private static final Pattern URL_PATTERN = Pattern.compile("((https?|ftp|gopher|telnet|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)", Pattern.CASE_INSENSITIVE);
-
-
     public static ConfigurationLoader<CommentedConfigurationNode> messageLoader;
     public static CommentedConfigurationNode messages;
+    public static boolean logToFile;
+    public static List<String> sendToChestWhitelist;
 
-    public Messages(Main main) throws IOException, ObjectMappingException {
-        plugin = main;
-        defaultMessage = plugin.ConfigDir.resolve("messages.conf");
+    public Messages(MMCRestrict plugin) throws IOException, ObjectMappingException {
+        defaultMessage = plugin.configDir.resolve("messages.conf");
         messageLoader = HoconConfigurationLoader.builder().setPath(defaultMessage).build();
         messages = messageLoader.load();
         messageCheck();
     }
-
-    public static boolean logToFile;
-
-    public static List<String> sendToChestWhitelist;
 
     //banlist
     public static String bannedItemHover = "&cBanned methods &7- &6Use&7: {usebanned} &6Break&7: {breakbanned} &6Place&7: {placebanned} &6Own&7: {ownbanned} &6Craft&7: {craftbanned} &6World&7: {worldbanned}";
@@ -60,13 +53,10 @@ public class Messages {
     public static String checkStarted = "Chunk searching has been initiated. All world banned items will be removed if found.";
 
     public void messageCheck() throws IOException, ObjectMappingException {
-
         if (!Files.exists(defaultMessage)) {
             Files.createFile(defaultMessage);
         }
 
-
-        //banlist
         bannedListTitle = check(messages.getNode("list", "title"), bannedListTitle).getString();
         bannedListPadding = check(messages.getNode("list", "padding"), bannedListPadding).getString();
         bannedItemNonHidden = check(messages.getNode("list", "error", "non-hidden"), bannedItemNonHidden).getString();
@@ -77,16 +67,11 @@ public class Messages {
         bannedItemHover = check(messages.getNode("list", "hover", "info"), bannedItemHover).getString();
         bannedItemEdit = check(messages.getNode("list", "hover", "edit"), bannedItemEdit).getString();
         bannedItemExtraInfo = check(messages.getNode("list", "hover", "extra"), bannedItemExtraInfo).getString();
-
-        //checkchunks
         checkStarted = check(messages.getNode("commands", "checkchunks", "check-started"), checkStarted).getString();
-
-        //hidden banlist
         bannedListHiddenTitle = check(messages.getNode("list", "hidden", "title"), bannedListHiddenTitle).getString();
         bannedListHideHover = check(messages.getNode("list", "hidden", "hover"), bannedListHideHover).getString();
         bannedListHidden = check(messages.getNode("list", "hidden", "hidden-prefix"), bannedListHidden).getString();
         bannedListHide = check(messages.getNode("list", "hidden", "hide-prefix"), bannedListHide).getString();
-
         messageLoader.save(messages);
     }
 
@@ -105,5 +90,4 @@ public class Messages {
 
         return textMessage;
     }
-
 }

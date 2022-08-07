@@ -14,7 +14,6 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
-import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
@@ -46,11 +45,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "mmcrestrict", name = "MMCRestrict", version = "1.7.1", description = "A simple item restriction plugin", authors = {"Leelawd93"})
-public class Main {
-
-    private static Main instance;
-    private Game game;
+@Plugin(id = "mmcrestrict", name = "MMCRestrict", version = "1.7.1", description = "A simple item restriction plugin", authors = {"Leelawd93, STGAllen"})
+public class MMCRestrict {
 
     @Inject
     private Logger logger;
@@ -61,21 +57,18 @@ public class Main {
 
     @Inject
     @ConfigDir(sharedRoot = false)
-    public Path ConfigDir;
+    public Path configDir;
 
     private CommandManager cmdManager = Sponge.getCommandManager();
-
-    private Map<String, ItemData> items;
-    private Map<String, ModData> modslist;
-
+    private Map<String, ItemData> itemCache;
+    private Map<String, ModData> modCache;
     private Task autoPurgeTask = null;
 
 
     @Listener
     public void Init(GameInitializationEvent event) throws IOException, ObjectMappingException {
-        instance = this;
-        new Config(this);
         new Messages(this);
+        new Config();
         Sponge.getEventManager().registerListeners(this, new EventListener(this));
 
         TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(ItemData.class), new ItemDataSerializer());
@@ -88,7 +81,7 @@ public class Main {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
-        logger.info("Banned items loaded: " + items.size());
+        logger.info("Banned items loaded: " + itemCache.size());
         logger.info("MMCRestrict Loaded");
     }
 
@@ -102,16 +95,11 @@ public class Main {
         }
 
         autoPurgeTask = Task.builder()
-                .execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkLoadedChunks();
-                    }
-                })
-                .interval(Config.defaultAutoPurgeInterval, TimeUnit.MINUTES)
-                .delay(5,TimeUnit.MINUTES)
-                .async()
-                .name("mmcrestrict-a-bannedItemsAutoPurge").submit(this);
+            .execute(() -> checkLoadedChunks())
+            .interval(Config.defaultAutoPurgeInterval, TimeUnit.MINUTES)
+            .delay(5, TimeUnit.MINUTES)
+            .async()
+            .name("mmcrestrict-a-bannedItemsAutoPurge").submit(this);
 
         logger.info("MMCRestrict World AutoPurge Started (check chunks every " + Config.defaultAutoPurgeInterval + " minutes )");
 
@@ -119,46 +107,34 @@ public class Main {
 
     @Listener
     public void onPluginReload(GameReloadEvent event) throws IOException, ObjectMappingException {
-        new Config(this);
         loadData();
         startAutoPurge();
     }
 
-
     private void loadCommands() {
-
-        // /restrict mod
         CommandSpec modAdd = CommandSpec.builder()
-                .description(Text.of("Add a full mod to the banned items list"))
-                .executor(new Mod(this))
-                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("Mod"))))
-                .permission(Permissions.ADD_BANNED_ITEM)
-                .build();
-
-        // /restrict add
+            .description(Text.of("Add a full mod to the banned items list"))
+            .executor(new Mod())
+            .arguments(GenericArguments.optional(GenericArguments.string(Text.of("Mod"))))
+            .permission(Permissions.ADD_BANNED_ITEM)
+            .build();
         CommandSpec itemAddHand = CommandSpec.builder()
-                .description(Text.of("Add item in hand to the banned items list"))
-                .executor(new Hand(this))
-                .permission(Permissions.ADD_BANNED_ITEM)
-                .build();
-
-        // /restrict remove
+            .description(Text.of("Add item in hand to the banned items list"))
+            .executor(new Hand())
+            .permission(Permissions.ADD_BANNED_ITEM)
+            .build();
         CommandSpec itemRemove = CommandSpec.builder()
-                .description(Text.of("Remove item manually from the banned items list"))
-                .executor(new Remove(this))
-                .arguments(GenericArguments.string(Text.of("ItemID")))
-                .permission(Permissions.REMOVE_BANNED_ITEM)
-                .build();
-
-        // /restrict search
+            .description(Text.of("Remove item manually from the banned items list"))
+            .executor(new Remove())
+            .arguments(GenericArguments.string(Text.of("ItemID")))
+            .permission(Permissions.REMOVE_BANNED_ITEM)
+            .build();
         CommandSpec itemSearch = CommandSpec.builder()
-                .description(Text.of("Search for an item from the banned items list within the world"))
-                .executor(new Search(this))
-                .arguments(GenericArguments.catalogedElement(Text.of("ItemID"), ItemType.class))
-                .permission(Permissions.SEARCH_BANNED_ITEM)
-                .build();
-
-
+            .description(Text.of("Search for an item from the banned items list within the world"))
+            .executor(new Search())
+            .arguments(GenericArguments.catalogedElement(Text.of("ItemID"), ItemType.class))
+            .permission(Permissions.SEARCH_BANNED_ITEM)
+            .build();
         Map<String, String> choices = new HashMap<String, String>() {
             {
                 put("reason", "reason");
@@ -175,58 +151,58 @@ public class Main {
 
         // /restrict edit itemID [reason/use/break/place/own/craft/world] [true/false/reason]
         CommandSpec itemEdit = CommandSpec.builder()
-                .description(Text.of("Edit values on a banned item"))
-                .executor(new Edit(this))
-                .arguments(GenericArguments.optional(GenericArguments.string(Text.of("ItemID"))),
-                        GenericArguments.optional(GenericArguments.choices(Text.of("Option"), choices)),
-                        GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("True/False/Message"))))
-                .permission(Permissions.EDIT_BANNED_ITEM)
-                .build();
+            .description(Text.of("Edit values on a banned item"))
+            .executor(new Edit())
+            .arguments(GenericArguments.optional(GenericArguments.string(Text.of("ItemID"))),
+                GenericArguments.optional(GenericArguments.choices(Text.of("Option"), choices)),
+                GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("True/False/Message"))))
+            .permission(Permissions.EDIT_BANNED_ITEM)
+            .build();
 
         // /restrict list | /banneditems
         CommandSpec bannedList = CommandSpec.builder()
-                .description(Text.of("List the banned items"))
-                .executor(new BanList(this))
-                .arguments(GenericArguments.optional(GenericArguments.requiringPermission(GenericArguments.string(Text.of("hidden")), Permissions.LIST_HIDDEN)))
-                .permission(Permissions.LIST_BANNED_ITEMS)
-                .build();
+            .description(Text.of("List the banned items"))
+            .executor(new BanList())
+            .arguments(GenericArguments.optional(GenericArguments.requiringPermission(GenericArguments.string(Text.of("hidden")), Permissions.LIST_HIDDEN)))
+            .permission(Permissions.LIST_BANNED_ITEMS)
+            .build();
 
         // /restrict whatsthis | /whatsthis
         CommandSpec whatsThis = CommandSpec.builder()
-                .description(Text.of("Get the id of an item in hand"))
-                .executor(new Whatsthis(this))
-                .permission(Permissions.WHATS_THIS)
-                .build();
+            .description(Text.of("Get the id of an item in hand"))
+            .executor(new WhatIsThis())
+            .permission(Permissions.WHATS_THIS)
+            .build();
 
         // /restrict checkchunks
         CommandSpec checkChunks = CommandSpec.builder()
-                .description(Text.of("Search loaded chunks for banned blocks"))
-                .executor(new CheckChunks(this))
-                .permission(Permissions.CHECK_CHUNKS)
-                .build();
+            .description(Text.of("Search loaded chunks for banned blocks"))
+            .executor(new CheckChunks())
+            .permission(Permissions.CHECK_CHUNKS)
+            .build();
 
         // /restrict sendtochest
         CommandSpec sendToChest = CommandSpec.builder()
-                .description(Text.of("Search loaded chunks for a block and put it in a chest"))
-                .executor(new Sendtochest(this))
-                .arguments(GenericArguments.catalogedElement(Text.of("ItemID"), ItemType.class))
-                .permission(Permissions.SEND_TO_CHEST)
-                .build();
+            .description(Text.of("Search loaded chunks for a block and put it in a chest"))
+            .executor(new SendToChest())
+            .arguments(GenericArguments.catalogedElement(Text.of("ItemID"), ItemType.class))
+            .permission(Permissions.SEND_TO_CHEST)
+            .build();
 
         // /restrict
         CommandSpec restrict = CommandSpec.builder()
-                .description(Text.of("Base restrict command"))
-                .executor(new Help(this))
-                .child(modAdd, "mod")
-                .child(itemAddHand, "add")
-                .child(itemRemove, "remove")
-                .child(itemEdit, "edit")
-                .child(bannedList, "list")
-                .child(itemSearch, "search")
-                .child(whatsThis, "whatsthis")
-                .child(checkChunks, "checkchunks")
-                .child(sendToChest, "sendtochest")
-                .build();
+            .description(Text.of("Base restrict command"))
+            .executor(new Help())
+            .child(modAdd, "mod")
+            .child(itemAddHand, "add")
+            .child(itemRemove, "remove")
+            .child(itemEdit, "edit")
+            .child(bannedList, "list")
+            .child(itemSearch, "search")
+            .child(whatsThis, "whatsthis")
+            .child(checkChunks, "checkchunks")
+            .child(sendToChest, "sendtochest")
+            .build();
 
         cmdManager.register(this, bannedList, "banneditems");
         cmdManager.register(this, whatsThis, "whatsthis");
@@ -234,7 +210,7 @@ public class Main {
     }
 
     public HoconConfigurationLoader getItemDataLoader() {
-        return HoconConfigurationLoader.builder().setPath(this.ConfigDir.resolve("Banneditems.conf")).build();
+        return HoconConfigurationLoader.builder().setPath(this.configDir.resolve("banneditems.conf")).build();
     }
 
     private void loadData() throws IOException, ObjectMappingException {
@@ -242,22 +218,22 @@ public class Main {
         ConfigurationNode rootNode = loader.load();
 
         List<ItemData> itemList = rootNode.getNode("Items").getList(TypeToken.of(ItemData.class));
-        this.items = new HashMap<String, ItemData>();
+        this.itemCache = new HashMap<>();
         for (ItemData item : itemList) {
-            this.items.put(item.getItemid(), item);
+            this.itemCache.put(item.getItemid(), item);
         }
         List<ModData> modList = rootNode.getNode("Mods").getList(TypeToken.of(ModData.class));
-        this.modslist = new HashMap<String, ModData>();
+        this.modCache = new HashMap<>();
         for (ModData mod : modList) {
-            this.modslist.put(mod.getMod(), mod);
+            this.modCache.put(mod.getMod(), mod);
         }
     }
 
     public void saveData() throws IOException, ObjectMappingException {
         HoconConfigurationLoader loader = getItemDataLoader();
         ConfigurationNode rootNode = loader.load();
-        rootNode.getNode("Items").setValue(ItemDataSerializer.token, new ArrayList<ItemData>(this.items.values()));
-        rootNode.getNode("Mods").setValue(ModData.ModDataSerializer.token, new ArrayList<ModData>(this.modslist.values()));
+        rootNode.getNode("Items").setValue(ItemDataSerializer.token, new ArrayList<>(this.itemCache.values()));
+        rootNode.getNode("Mods").setValue(ModData.ModDataSerializer.token, new ArrayList<>(this.modCache.values()));
         loader.save(rootNode);
     }
 
@@ -271,79 +247,75 @@ public class Main {
         }
         if (!itemExist) {
             addItem(new ItemData(
-                    Config.defaultHidden,
-                    itemID,
-                    itemName,
-                    Config.defaultReason,
-                    Config.defaultUsage,
-                    Config.defaultBreaking,
-                    Config.defaultPlacing,
-                    Config.defaultOwnership,
-                    Config.defaultDrop,
-                    Config.defaultCraft,
-                    Config.defaultWorld
+                Config.defaultHidden,
+                itemID,
+                itemName,
+                Config.defaultReason,
+                Config.defaultUsage,
+                Config.defaultBreaking,
+                Config.defaultPlacing,
+                Config.defaultOwnership,
+                Config.defaultDrop,
+                Config.defaultCraft,
+                Config.defaultWorld
             ));
-            logToFile("ban-list", playerName + " added " +itemName+ " to the ban list");
+            logToFile("ban-list", playerName + " added " + itemName + " to the ban list");
         }
     }
 
     public void checkLoadedChunks() {
         Collection<World> loadedWorlds = Sponge.getServer().getWorlds();
-        final java.util.List<ItemData> items = new ArrayList<ItemData>(getItemData());
-        Sponge.getScheduler().createAsyncExecutor(this).execute(new Runnable() {
-            public void run() {
-                loadedWorlds.forEach(world -> {
-                    Iterable<Chunk> loadedChunks = world.getLoadedChunks();
-                    loadedChunks.forEach(chunk -> {
-                        Vector3i min = chunk.getBlockMin();
-                        Vector3i max = chunk.getBlockMax();
-                        for (int x = min.getX(); x <= max.getX(); x++) {
-                            for (int y = min.getY(); y <= max.getY(); y++) {
-                                for (int z = min.getZ(); z <= max.getZ(); z++) {
-                                    BlockState block = chunk.getBlock(x, y, z);
-                                    Location blockLoc = chunk.getLocation(x, y, z);
-                                    for (ItemData item : items) {
-                                        if (item.getItemid().equals(block.getType().getId()) && item.getWorldbanned()) {
-                                            int finalX = x;
-                                            int finalY = y;
-                                            int finalZ = z;
-                                            Sponge.getScheduler().createTaskBuilder().execute(() -> {
-                                                blockLoc.setBlock(BlockTypes.AIR.getDefaultState());
-                                                logToFile("action-log", "Removed banned block:" +item.getItemname()+ " at x:" + finalX + " y:" + finalY + " z:" + finalZ);
-                                            }).submit(Sponge.getPluginManager().getPlugin("mmcrestrict").get().getInstance().get());
-                                        }
-                                    }
+        final java.util.List<ItemData> items = new ArrayList<>(getItemData());
+        Sponge.getScheduler().createAsyncExecutor(this).execute(() -> loadedWorlds.forEach(world -> {
+            Iterable<Chunk> loadedChunks = world.getLoadedChunks();
+            loadedChunks.forEach(chunk -> {
+                Vector3i min = chunk.getBlockMin();
+                Vector3i max = chunk.getBlockMax();
+                for (int x = min.getX(); x <= max.getX(); x++) {
+                    for (int y = min.getY(); y <= max.getY(); y++) {
+                        for (int z = min.getZ(); z <= max.getZ(); z++) {
+                            BlockState block = chunk.getBlock(x, y, z);
+                            Location blockLoc = chunk.getLocation(x, y, z);
+                            for (ItemData item : items) {
+                                if (item.getItemid().equals(block.getType().getId()) && item.getWorldbanned()) {
+                                    int finalX = x;
+                                    int finalY = y;
+                                    int finalZ = z;
+                                    Sponge.getScheduler().createTaskBuilder().execute(() -> {
+                                        blockLoc.setBlock(BlockTypes.AIR.getDefaultState());
+                                        logToFile("action-log", "Removed banned block:" + item.getItemname() + " at x:" + finalX + " y:" + finalY + " z:" + finalZ);
+                                    }).submit(Sponge.getPluginManager().getPlugin("mmcrestrict").get().getInstance().get());
                                 }
                             }
                         }
-                    });
-                });
-            }
-        });
+                    }
+                }
+            });
+        }));
     }
 
     public Collection<ItemData> getItemData() {
-        return Collections.unmodifiableCollection(this.items.values());
+        return Collections.unmodifiableCollection(this.itemCache.values());
     }
 
     public ItemData addItem(ItemData item) {
-        return this.items.put(item.getItemid(), item);
+        return this.itemCache.put(item.getItemid(), item);
     }
 
     public ItemData removeItem(String item) {
-        return this.items.remove(item);
+        return this.itemCache.remove(item);
     }
 
     public Collection<ModData> getModData() {
-        return Collections.unmodifiableCollection(this.modslist.values());
+        return Collections.unmodifiableCollection(this.modCache.values());
     }
 
     public ModData addMod(ModData mod) {
-        return this.modslist.put(mod.getMod(), mod);
+        return this.modCache.put(mod.getMod(), mod);
     }
 
     public ModData removeMod(String mod) {
-        return this.modslist.remove(mod);
+        return this.modCache.remove(mod);
     }
 
     public Text fromLegacy(String legacy) {
@@ -358,18 +330,14 @@ public class Main {
         }
     }
 
-    public Logger getLogger() {
-        return logger;
-    }
-
     public void logToFile(String filename, String message) {
         if (Config.logToFile) {
             try {
-                if (!Files.exists(ConfigDir.resolve("logs"))) {
-                    Files.createDirectory(ConfigDir.resolve("logs"));
+                if (!Files.exists(configDir.resolve("logs"))) {
+                    Files.createDirectory(configDir.resolve("logs"));
                 }
 
-                Path saveTo = ConfigDir.resolve("logs/" + filename + ".txt");
+                Path saveTo = configDir.resolve("logs/" + filename + ".txt");
 
                 if (!Files.exists(saveTo)) {
                     Files.createFile(saveTo);
@@ -386,7 +354,6 @@ public class Main {
                 e.printStackTrace();
             }
         }
-
     }
 
     public void notifyOnlineStaff(Text message) {
@@ -400,5 +367,4 @@ public class Main {
             }
         }
     }
-
 }

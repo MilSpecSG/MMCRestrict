@@ -1,7 +1,9 @@
 package net.moddedminecraft.mmcrestrict.Config;
 
 import com.google.common.reflect.TypeToken;
-import net.moddedminecraft.mmcrestrict.Main;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -12,15 +14,16 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class Config {
 
-    private final Main plugin;
+    @Inject
+    private MMCRestrict plugin;
 
     private static ConfigurationLoader<CommentedConfigurationNode> loader;
     public static CommentedConfigurationNode config;
 
-    public Config(Main main) throws IOException, ObjectMappingException {
-        plugin = main;
+    public Config() throws IOException, ObjectMappingException {
         loader = HoconConfigurationLoader.builder().setPath(plugin.defaultConf).build();
         config = loader.load();
         configCheck();
@@ -73,7 +76,7 @@ public class Config {
         defaultAutoPurge = check(config.getNode("world-auto-purge", "is-enabled"), defaultAutoPurge).getBoolean();
 
         defaultAutoPurgeInterval = check(config.getNode("world-auto-purge", "interval-in-minutes"), defaultAutoPurgeInterval, "Check for banned items around the World... interval should be more than 5").getInt();
-        if (defaultAutoPurgeInterval < 5){
+        if (defaultAutoPurgeInterval < 5) {
             defaultAutoPurgeInterval = 5;
         }
 

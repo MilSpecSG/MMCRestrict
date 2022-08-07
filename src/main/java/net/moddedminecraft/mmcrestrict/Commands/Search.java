@@ -1,8 +1,8 @@
 package net.moddedminecraft.mmcrestrict.Commands;
 
 import com.flowpowered.math.vector.Vector3i;
-import net.moddedminecraft.mmcrestrict.Data.ItemData;
-import net.moddedminecraft.mmcrestrict.Main;
+import com.google.inject.Inject;
+import net.moddedminecraft.mmcrestrict.MMCRestrict;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.command.CommandException;
@@ -21,11 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Search implements CommandExecutor {
-    private final Main plugin;
 
-    public Search(Main plugin) {
-        this.plugin = plugin;
-    }
+    @Inject
+    private MMCRestrict plugin;
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
@@ -35,41 +33,38 @@ public class Search implements CommandExecutor {
         Player player = (Player) src;
         ItemType itemType = args.<ItemType>getOne("ItemID").get();
         Iterable<Chunk> loadedChunks = player.getWorld().getLoadedChunks();
-        final java.util.List<ItemData> items = new ArrayList<ItemData>(plugin.getItemData());
         PaginationService paginationService = Sponge.getServiceManager().provide(PaginationService.class).get();
         List<Text> contents = new ArrayList<>();
         player.sendMessage(plugin.fromLegacy("&eSearch has started, Please wait a moment for the results."));
-        Sponge.getScheduler().createAsyncExecutor(plugin).execute(new Runnable() {
-            public void run() {
-                loadedChunks.forEach(chunk -> {
-                    Vector3i min = chunk.getBlockMin();
-                    Vector3i max = chunk.getBlockMax();
-                    for (int x = min.getX(); x <= max.getX(); x++) {
-                        for (int y = min.getY(); y <= max.getY(); y++) {
-                            for (int z = min.getZ(); z <= max.getZ(); z++) {
-                                BlockState block = chunk.getBlock(x, y, z);
-                                if (block.getType().getId().equals(itemType.getId())) {
-                                    Text.Builder send = Text.builder();
-                                    send.append(plugin.fromLegacy("&6Block found: &7"+itemType.getTranslation().get()+" &6at x:&7" + x + " &6y:&7" + y + " &6z:&7" +z));
-                                    send.onClick(TextActions.runCommand("/tppos "+x+ " "+y+" "+z));
-                                    send.onHover(TextActions.showText(plugin.fromLegacy("Teleport to x:" + x + " y:" + y + " z:" +z)));
-                                    contents.add(send.build());
-                                }
+        Sponge.getScheduler().createAsyncExecutor(plugin).execute(() -> {
+            loadedChunks.forEach(chunk -> {
+                Vector3i min = chunk.getBlockMin();
+                Vector3i max = chunk.getBlockMax();
+                for (int x = min.getX(); x <= max.getX(); x++) {
+                    for (int y = min.getY(); y <= max.getY(); y++) {
+                        for (int z = min.getZ(); z <= max.getZ(); z++) {
+                            BlockState block = chunk.getBlock(x, y, z);
+                            if (block.getType().getId().equals(itemType.getId())) {
+                                Text.Builder send = Text.builder();
+                                send.append(plugin.fromLegacy("&6Block found: &7" + itemType.getTranslation().get() + " &6at x:&7" + x + " &6y:&7" + y + " &6z:&7" + z));
+                                send.onClick(TextActions.runCommand("/tppos " + x + " " + y + " " + z));
+                                send.onHover(TextActions.showText(plugin.fromLegacy("Teleport to x:" + x + " y:" + y + " z:" + z)));
+                                contents.add(send.build());
                             }
                         }
                     }
-                });
-                if (contents.isEmpty()) {
-                    contents.add(plugin.fromLegacy("No blocks found"));
                 }
-
-                paginationService.builder()
-                        .title(plugin.fromLegacy("Block Search"))
-                        .contents(contents)
-                        .padding(Text.of("="))
-                        .sendTo(player);
-
+            });
+            if (contents.isEmpty()) {
+                contents.add(plugin.fromLegacy("No blocks found"));
             }
+
+            paginationService.builder()
+                .title(plugin.fromLegacy("Block Search"))
+                .contents(contents)
+                .padding(Text.of("="))
+                .sendTo(player);
+
         });
         return CommandResult.success();
     }
